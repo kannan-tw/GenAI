@@ -1,5 +1,13 @@
 # GenAI - AI-Powered Software Development Lifecycle Automation
 
+<p align="left">
+  <a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://platform.openai.com/" target="_blank"><img src="https://img.shields.io/badge/OpenAI-API-412991?logo=openai&logoColor=white" alt="OpenAI API"></a>
+  <a href="https://neo4j.com" target="_blank"><img src="https://img.shields.io/badge/Graph-NEO4J-008CC1?logo=neo4j&logoColor=white" alt="Neo4j"></a>
+  <a href="#-azure-devops-integration"><img src="https://img.shields.io/badge/Azure%20DevOps-MCP%20Integration-0078D7?logo=azuredevops&logoColor=white" alt="Azure DevOps MCP"></a>
+  <img src="https://img.shields.io/badge/Status-Experimental-orange" alt="Project Status" />
+</p>
+
 A comprehensive collection of AI applications demonstrating automated SDLC processes, multi-agent systems, and intelligent code analysis using LangGraph, FastAPI, and Streamlit.
 
 ## 🚀 Overview
@@ -23,6 +31,49 @@ GenAI/
 └── .vscode/                     # VS Code configuration with MCP
 ```
 
+## 🧩 High-Level Architecture
+
+```mermaid
+flowchart LR
+  subgraph SDLC[SDLC Automation Notebooks]
+    R[Requirements Notebook]
+    H[HLD Notebook]
+    C[Code Gen Notebook]
+    D[Deployment Notebook]
+  end
+
+  subgraph CodeAnalysis[Chat With Codebase]
+    Ingest[Ingestion API]
+    LG[LangGraph Workflow]
+    CY[Cypher Generator]
+  end
+
+  subgraph GraphDB[Neo4j]
+    G[(Code Graph)]
+  end
+
+  subgraph Tasks[Daily Tasks App]
+    BE[FastAPI Backend]
+    FE[Streamlit Frontend]
+    DB[(SQLite)]
+  end
+
+  subgraph Travel[Traveller App]
+    Agg[Aggregator Agent]
+    Flight[Flight Agent]
+    Hotel[Hotel Agent]
+  end
+
+  DevUser([Developer / User]) -->|prompts & inputs| SDLC
+  SDLC -->|generated artifacts| CodeAnalysis
+  Ingest --> G
+  FE --> BE
+  DevUser --> FE
+  DevUser --> Agg
+  Agg --> Flight
+  Agg --> Hotel
+
+  SDLC -->|deployment scripts| DevOps[(Terraform / Ansible)]
 ## 🔧 Core Components
 
 ### 1. Chat with Codebase
@@ -37,10 +88,6 @@ AI-powered code analysis system that ingests codebases into Neo4j and enables na
 - Natural language to Cypher translation
 
 **Key Files**:
-- `api.py` - FastAPI endpoints for code ingestion and querying
-- `lg_neo4j.py` - LangGraph workflow for query processing
-- `neo4j_lib.py` - Neo4j database operations
-
 ### 2. Daily Tasks App
 **Location**: `copilot/daily-tasks-app/`
 
@@ -48,23 +95,11 @@ Modern full-stack task management application demonstrating best practices.
 
 **Architecture**:
 - **Backend**: FastAPI with SQLAlchemy ORM
-- **Frontend**: Streamlit interactive UI
-- **Database**: SQLite for development
-
 **Setup**:
 ```bash
-# Backend
-cd copilot/daily-tasks-app/backend
-pip install -r requirements.txt
 uvicorn app:app --reload
 
 # Frontend
-cd ../frontend
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-### 3. SDLC Automation
 **Location**: `sdlc-automation-blogs/`
 
 Complete automation of software development lifecycle using AI agents.
@@ -90,9 +125,6 @@ Multi-agent system for travel planning with JSON-RPC communication.
 **Components**:
 - `aggregator_app/` - Main orchestration agent
 - `flight_app/` - Flight booking specialist
-- `hotel_app/` - Accommodation specialist
-
-**Features**:
 - Agent-to-agent communication via JSON-RPC 2.0
 - Service discovery with agent cards
 - Streamlit UIs for each service
@@ -106,7 +138,28 @@ Multi-agent system for travel planning with JSON-RPC communication.
 - **Infrastructure**: Terraform, Ansible
 - **Integration**: Azure DevOps (via MCP)
 
-## 🚀 Quick Start
+## � Environment Variables
+
+| Name | Required | Default | Used By | Description |
+|------|----------|---------|---------|-------------|
+| `OPENAI_API_KEY` | Yes | — | All AI workflows | OpenAI model access token |
+| `MODEL_NAME` | No | `gpt-4o-mini` | LangGraph agents | Default LLM model identifier |
+| `NEO4J_URI` | For code analysis | `bolt://localhost:7687` | Chat with Codebase | Neo4j connection URI |
+| `NEO4J_USER` | For code analysis | `neo4j` | Chat with Codebase | Neo4j username |
+| `NEO4J_PASSWORD` | For code analysis | — | Chat with Codebase | Neo4j password |
+| `PYTHONPATH` | No | — | Notebooks / tooling | Optional path adjustments |
+| `ADO_ORG` | When using ADO MCP | — | Azure DevOps integration | Azure DevOps organization name |
+
+Export (example):
+```bash
+export OPENAI_API_KEY="sk-..."
+export MODEL_NAME="gpt-4o-mini"
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="password"
+```
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
@@ -147,22 +200,27 @@ uvicorn app:app --reload --port 8001
 cd copilot/daily-tasks-app/frontend
 streamlit run app.py --server.port 8501
 ```
-
-**SDLC Automation**:
-```bash
 cd sdlc-automation-blogs
 jupyter notebook
-# Open and run the desired automation notebooks
-```
+## �️ Service Run Matrix
 
-## 🔧 Development Patterns
+| Service | Path | Purpose | Start Command | Default Port | Notes |
+|---------|------|---------|---------------|--------------|-------|
+| Chat with Codebase API | `chat-with-codebase/` | Ingest & query code graph | `uvicorn api:app --reload --port 8000` | 8000 | Requires Neo4j running |
+| Daily Tasks Backend | `copilot/daily-tasks-app/backend/` | Task CRUD & persistence | `uvicorn app:app --reload --port 8001` | 8001 | SQLite dev DB |
+| Daily Tasks Frontend | `copilot/daily-tasks-app/frontend/` | Task UI (Streamlit) | `streamlit run app.py --server.port 8501` | 8501 | Connects to backend |
+| Traveller Aggregator | `Traveller_App/aggregator_app/` | Orchestrates travel agents | `streamlit run ui.py --server.port 8601` | 8601* | Port suggestion (configure) |
+| Traveller Flight Agent | `Traveller_App/flight_app/` | Flight domain logic | `streamlit run ui.py --server.port 8602` | 8602* | Independent agent UI |
+| Traveller Hotel Agent | `Traveller_App/hotel_app/` | Hotel domain logic | `streamlit run ui.py --server.port 8603` | 8603* | Independent agent UI |
+| SDLC Notebooks | `sdlc-automation-blogs/` | Automated SDLC phases | `jupyter notebook` | 8888* | Browser UI |
+
+*Ports marked with * are suggested; adjust as needed to avoid conflicts.
+
+## �🔧 Development Patterns
 
 ### LangGraph Workflows
 ```python
 from langgraph.graph import StateGraph
-from typing_extensions import TypedDict
-
-class State(TypedDict):
     messages: Annotated[list, add_messages]
     max_iteration: int
     iteration: int
@@ -200,16 +258,48 @@ This project includes Azure DevOps integration via Model Context Protocol (MCP):
 
 ## 📚 Documentation
 
-- **Architecture Decisions**: See `sdlc-automation-blogs/hld/output/`
-- **API Documentation**: Available at `/docs` endpoint for each FastAPI service
-- **Code Examples**: Comprehensive examples in each component directory
+
+| Issue | Symptoms | Resolution |
+|-------|----------|------------|
+| Neo4j connection fails | `ServiceUnavailable` / cannot connect | Ensure Neo4j running on `NEO4J_URI`, correct credentials, bolt port open |
+| Empty Cypher results | Queries return nothing though code exists | Re-run ingestion; confirm language extensions supported; verify capitalization of class/function names |
+| OpenAI auth error | 401 / invalid key | Confirm `OPENAI_API_KEY` exported in current shell and not truncated |
+| Port already in use | `OSError: [Errno 48] Address already in use` | Change `--port` or terminate existing process (macOS: `lsof -i :8000`) |
+| Streamlit auto-reload loop | Continuous reruns | Clear `.streamlit` config; avoid writing large files in working directory during run |
+3. How to add a new agent? → Create service module, define LangGraph node functions, register endpoints or JSON-RPC method, document in architecture.
+4. How to deploy? → Use generated Terraform & Ansible from deployment notebooks as a baseline; review before production.
+5. Is this production-ready? → Marked Experimental; harden security, observability, and testing before production use.
 
 ## 🤝 Contributing
+We welcome improvements, refactors, and new automation experiments.
 
-1. Fork the repository
-2. Create a feature branch
-3. Follow the established patterns (see `.github/copilot-instructions.md`)
-4. Submit a pull request
+5. Run / smoke test affected services
+
+### Commit Conventions
+Use conventional style where possible:
+`feat: add neo4j ingestion batching`
+`fix: correct cypher generation for nested calls`
+
+### PR Checklist
+- [ ] Feature / fix explained in description
+- [ ] README or notebook updated if behavior user-facing
+- [ ] No secrets committed
+- [ ] Lint / formatting respected (black / isort if adopted locally)
+- [ ] Added small test or manual reproduction steps
+
+### Adding a New Agent or Service
+1. Place code under a new directory (e.g., `agents/<name>`)
+2. Provide a minimal `README.md` in that directory
+3. Expose FastAPI or Streamlit entrypoint
+4. Document env vars / ports in main README tables
+
+### Roadmap (Initial)
+- Short term: Refine code ingestion performance; add graph schema visualization
+- Short term: Add automated test generation & execution harness
+- Mid term: Integrate vector store hybrid search option
+- Mid term: Add authentication layer for APIs
+- Long term: CI/CD with Azure Pipelines & artifact versioning
+- Long term: Pluggable model abstraction (Anthropic, Azure OpenAI, local LLMs)
 
 ## 📄 License
 
